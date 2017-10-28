@@ -1,0 +1,15 @@
+**/db/*
+**/simulation/*
+**/output_files/*
+**/incremental_db/*
+*.qsf
+*.qws
+*.qpf
+*.bak
+*.jdi
+*.swp
+*.o
+*.cf
+*.vcd
+**/.stack-work/
+
