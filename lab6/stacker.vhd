@@ -30,11 +30,11 @@ architecture rtl of stacker is
     end component;
 
     signal RAM_input  : std_logic_vector(3 downto 0);
-    signal RAM_output : std_logic_vector(3 downto 0);
     signal RAM_we     : std_logic;
     signal stack_ptr  : unsigned(3 downto 0);
-    signal MBR        : std_logic_vector(3 downto 0);
+    signal MBR        : std_logic_vector(3 downto 0) := "0000";
     signal state      : std_logic_vector(2 downto 0);
+    signal RAM_output : std_logic_vector(3 downto 0);
     
 begin 
 
@@ -57,21 +57,25 @@ begin
                     state <= "111";
                 elsif b3 = '0' then 
                     RAM_input <= MBR;
-                    RAM_we <= '0';
+                    RAM_we <= '1';
                     state <= "001";
-                elsif b4 = '0' and not(stack_ptr = "0000") then 
-                    stack_ptr <= stack_ptr - 1;
-                    state <= "110";
+                elsif b4 = '0' then
+                    if not(stack_ptr = "0000") then 
+                        stack_ptr <= stack_ptr - 1;
+                    end if;
+                    state <= "100";
                 end if;
             when "001" =>
                 RAM_we <= '0';
                 stack_ptr <= stack_ptr + 1;
+                state <= "111";
             when "100" =>
                 state <= "101";
             when "101" =>
                 state <= "110";
             when "110" => 
                 MBR <= RAM_output;
+                state <= "111";
             when "111" => 
                 if b2 = '1' and b3 = '1' and b4 = '1' then 
                     state <= "000";
