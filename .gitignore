@@ -11,5 +11,8 @@
 *.o
 *.cf
 *.vcd
+*.cmp
+*.qip
 **/.stack-work/
+**/greybox_tmp
 
