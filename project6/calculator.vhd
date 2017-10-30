@@ -33,19 +33,19 @@ architecture rtl of calculator is
     component segment_display is 
         port (
             input  : in  std_logic_vector(3 downto 0);
-            output : out std_logic_vector(6 downto 0);
+            output : out std_logic_vector(6 downto 0)
         );
     end component;
 
     constant value_0  : std_logic_vector(7 downto 0) := "00000000";
 
-    signal stack_ptr  : unsigned(3 downto 0);         
+    signal stack_ptr  : unsigned(3 downto 0) := "0000";         
                             -- the pointer inside RAM to top locatiion
     signal RAM_input  : std_logic_vector(7 downto 0); -- data to be stored inside RAM
     signal RAM_output : std_logic_vector(7 downto 0); 
                             -- data read from RAM pointed by stack_ptr
-    signal RAM_we     : std_logic;                    -- whether to write data
-    signal state      : std_logic_vector(3 downto 0); -- current state 
+    signal RAM_we     : std_logic := '0';                    -- whether to write data
+    signal state      : std_logic_vector(3 downto 0) := "0000"; -- current state 
     signal MBR        : std_logic_vector(7 downto 0); -- memory buffer 
                             -- register, used to hold values moving to and from stack
     signal TEMPR      : std_logic_vector(7 downto 0); -- register
@@ -88,6 +88,7 @@ begin
                     state <= "0100";
                 when "0100" => -- get value!
                     TEMPR <= RAM_output;
+						  state <= "0101";
                 when "0101" => -- execute arithmetic operations
                     case op is 
                         when "00" => -- add 
@@ -105,6 +106,7 @@ begin
                            std_logic_vector(unsigned(MBR(7 downto 0)) / 
 														  unsigned(TEMPR(7 downto 0)));
                     end case;
+						  state <= "1111";
                 when others => -- state 1111
                     state <= "0000";
             end case;
