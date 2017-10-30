@@ -3,7 +3,7 @@ use ieee.numeric_std.all;
 use ieee.std_logic_1164.all;
 
 entity calculator is 
-    port(
+    port (
         clk       : in  std_logic;
         reset     : in  std_logic;
         b2        : in  std_logic;
@@ -27,6 +27,13 @@ architecture rtl of calculator is
             data    : in  std_logic_vector(7 downto 0);
             wren    : in  std_logic;
             q       : out std_logic_vector(7 downto 0)
+        );
+    end component;
+
+    component segment_display is 
+        port (
+            input  : in  std_logic_vector(3 downto 0);
+            output : out std_logic_vector(6 downto 0);
         );
     end component;
 
@@ -94,7 +101,7 @@ begin
                            std_logic_vector(unsigned(MBR(3 downto 0)) *
                                             unsigned(TEMPR(3 downto 0)));
                         when "11" => -- divide
-                            MBR <=  -- TODO finish the division 
+                            MBR <= 
                            std_logic_vector(unsigned(MBR(7 downto 0)) / 
 														  unsigned(TEMPR(7 downto 0)));
                     end case;
@@ -109,4 +116,10 @@ begin
 
 RAM : memram 
     port map (std_logic_vector(stack_ptr), clk, RAM_input, RAM_we, RAM_output);
+
+segment0 : segment_display 
+    port map (MBR(3 downto 0), digit0);
+
+segment1 : segment_display
+    port map (MBR(7 downto 4), digit1);
 end rtl;
