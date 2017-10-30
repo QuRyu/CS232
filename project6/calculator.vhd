@@ -20,6 +20,19 @@ end entity;
 
 architecture rtl of calculator is 
 
+    component memram is 
+        port (
+            address : in  std_logic_vector(3 downto 0);
+            clock   : in  std_logic;
+            data    : in  std_logic_vector(7 downto 0);
+            wren    : in  std_logic;
+            q       : out std_logic_vector(7 downto 0)
+        );
+    end component;
+
 begin 
 
+
+RAM : memram 
+    port map (std_logic_vector(stack_ptr), clk, RAM_input, RAM_we, RAM_output);
 end rtl;
