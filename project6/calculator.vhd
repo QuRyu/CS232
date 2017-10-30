@@ -51,6 +51,10 @@ architecture rtl of calculator is
     signal TEMPR      : std_logic_vector(7 downto 0); -- register
                             -- for holding values removed from stack
 
+    -- slow down the clock
+    signal counter    : std_logic_vector(25 downto 0); 
+    signal slowclk    : std_logic;
+
 begin 
 
     stackview <= std_logic_vector(stack_ptr);
@@ -62,7 +66,7 @@ begin
             RAM_input  <= value_0;
             RAM_we     <= '0';
             state      <= "0000";
-        elsif rising_edge(clk) then 
+        elsif rising_edge(slowclk) then 
             case state is 
                 when "0000" => -- wait state
                     if b2 = '0' then -- write input to MBR
@@ -114,6 +118,16 @@ begin
 
 
     end process;
+
+    process(clk, reset) 
+    begin 
+        if reset = '0' then 
+            counter <= "000000000000000000000";
+        elsif rising_edge(clk) then 
+            counter <= counter + 1;
+    end process;
+
+    slowclk <= std_logic(counter(25));
 
 
 RAM : memram 
