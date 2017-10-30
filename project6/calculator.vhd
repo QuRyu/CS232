@@ -30,7 +30,7 @@ architecture rtl of calculator is
         );
     end component;
 
-    constant value_0  : std_logic_vecotr(7 downto 0) := "00000000";
+    constant value_0  : std_logic_vector(7 downto 0) := "00000000";
 
     signal stack_ptr  : unsigned(3 downto 0);         
                             -- the pointer inside RAM to top locatiion
@@ -46,16 +46,13 @@ architecture rtl of calculator is
 
 begin 
 
-    value <= MBR;
     stackview <= std_logic_vector(stack_ptr);
-    stateview <= state;
     
     process(reset, clk, b2, b3, b4) 
     begin 
         if reset = '0' then 
             stack_ptr  <= "0000";
             RAM_input  <= value_0;
-            RAM_output <= value_0;
             RAM_we     <= '0';
             state      <= "0000";
         elsif rising_edge(clk) then 
@@ -98,9 +95,10 @@ begin
                                             unsigned(TEMPR(3 downto 0)));
                         when "11" => -- divide
                             MBR <=  -- TODO finish the division 
-                           std_logic_vector(divide(
+                           std_logic_vector(unsigned(MBR(7 downto 0)) / 
+														  unsigned(TEMPR(7 downto 0)));
                     end case;
-                when "1111" =>
+                when others => -- state 1111
                     state <= "0000";
             end case;
         end if;
