@@ -85,7 +85,9 @@ begin
                 when "0001" => 
                     RAM_we    <= '0';
                     state     <= "1111";
-                    stack_ptr <= stack_ptr + 1;
+                    if not(stack_ptr = "1111") then 
+                        stack_ptr <= stack_ptr + 1;
+                    end if;
                 when "0010" => -- wait for retrieving value
                     state <= "0011";
                 when "0011" => -- wait for retrieving value
