@@ -52,7 +52,7 @@ architecture rtl of calculator is
                             -- for holding values removed from stack
 
     -- slow down the clock
-    signal counter    : std_logic_vector(25 downto 0); 
+    signal counter    : unsigned(20 downto 0); 
     signal slowclk    : std_logic;
 
 begin 
@@ -77,10 +77,10 @@ begin
                         RAM_we    <= '1';
                         RAM_input <= MBR;
                     elsif b4 = '0' then -- execute operation
-                        state <= "0010";
-                        if not(stack_ptr) = "0000" then 
+                        if not(stack_ptr = "0000") then 
                             stack_ptr <= stack_ptr - 1;
                         end if;
+								state <= "0010";
                     end if;
                 when "0001" => 
                     RAM_we    <= '0';
@@ -125,9 +125,10 @@ begin
             counter <= "000000000000000000000";
         elsif rising_edge(clk) then 
             counter <= counter + 1;
+        end if;
     end process;
 
-    slowclk <= std_logic(counter(25));
+    slowclk <= std_logic(counter(20));
 
 
 RAM : memram 
@@ -138,4 +139,5 @@ segment0 : segment_display
 
 segment1 : segment_display
     port map (MBR(7 downto 4), digit1);
+
 end rtl;
