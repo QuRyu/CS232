@@ -86,7 +86,7 @@ begin
                             MBR <= std_logic_vector(unsigned(MBR) / unsigned(TEMPR));
                     end case;
                     state <= "1111";
-                when "1111" => -- final state
+                when others => -- final state
                     state <= "0000";
             end case;
         end if;
