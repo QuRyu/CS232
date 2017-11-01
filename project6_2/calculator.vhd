@@ -7,16 +7,16 @@ use ieee.numeric_std.all;
 
 entity calculator is 
     port (
-        clock     : in std_logic;
-        reset     : in std_logic;
-        b2        : in std_logic;  -- move data to MBR
-        b3        : in std_logic;  -- push MBR to stack
-        b4        : in std_logic;  -- pop data from stack and compute
-        op        : in std_logic_vector(1 downto 0);
-        data      : in std_logic_vector(7 downto 0);
-        digit0    : in std_logic_vector(6 downto 0);
-        digit1    : in std_logic_vector(6 downto 0);
-        stackview : in std_logic_vector(3 downto 0)
+        clock     : in  std_logic;
+        reset     : in  std_logic;
+        b2        : in  std_logic;  -- move data to MBR
+        b3        : in  std_logic;  -- push MBR to stack
+        b4        : in  std_logic;  -- pop data from stack and compute
+        op        : in  std_logic_vector(1 downto 0);
+        data      : in  std_logic_vector(7 downto 0);
+        digit0    : out std_logic_vector(6 downto 0);
+        digit1    : out std_logic_vector(6 downto 0);
+        stackview : out std_logic_vector(3 downto 0)
     );
 end entity;
         
