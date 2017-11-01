@@ -22,6 +22,16 @@ end entity;
         
 architecture cal of calculator is 
 
+    component memram is 
+        port (
+            address : in std_logic_vector(3 downto 0);
+            clock   : in std_logic;
+            data    : in std_logic_vector(7 downto 0);
+            wren    : in std_logic;
+            q       : out std_logic_vector(7 downto 0)
+        );
+    end component;
+
     -- memory buffer register 
     signal MBR : std_logic_vector(7 downto 0);
 
@@ -92,4 +102,6 @@ begin
         end if;
     end process;
 
+RAM : memram 
+    port map (std_logic_vector(stack_ptr), clock, RAM_input, RAM_we, RAM_output);
 end cal;
