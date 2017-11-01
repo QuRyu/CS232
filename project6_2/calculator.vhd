@@ -40,19 +40,19 @@ architecture cal of calculator is
     end component;
 
     -- memory buffer register 
-    signal MBR : std_logic_vector(7 downto 0);
+    signal MBR : std_logic_vector(7 downto 0) := "00000000";
 
     -- signals for RAM
     signal RAM_we     : std_logic;
     signal RAM_input  : std_logic_vector(7 downto 0);
     signal RAM_output : std_logic_vector(7 downto 0);
-    signal stack_ptr  : unsigned(3 downto 0);
+    signal stack_ptr  : unsigned(3 downto 0) := "0000";
 
     -- store values poped from stack
     signal TEMPR : std_logic_vector(7 downto 0);
 
     -- the state of execution 
-    signal state : std_logic_vector(3 downto 0);
+    signal state : std_logic_vector(3 downto 0) := "0000";
 
 begin 
 
@@ -79,16 +79,19 @@ begin
                     elsif b4 = '0' then  -- pop data from stack and computes
                         if stack_ptr /= "0000" then 
                             stack_ptr <= stack_ptr - 1;
+								else 
+									 stack_ptr <= stack_ptr;
                         end if;
                         state <= "0010";
                     end if;
                 when "0001" => 
                     RAM_we <= '0';
+						  stack_ptr <= stack_ptr + 1;
                     state  <= "1111";
                 when "0010" => -- wait for retrieving data from memory 
                     state <= "0011";
                 when "0011" => -- wait for retrieving data from memory
-                    state <= "0101";
+                    state <= "0100";  
                 when "0100" => -- get the value!
                     TEMPR <= RAM_output;
                     state <= "0101";
