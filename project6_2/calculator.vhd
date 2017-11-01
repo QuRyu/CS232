@@ -32,6 +32,13 @@ architecture cal of calculator is
         );
     end component;
 
+    component segment_display is 
+        port (
+            input  : in  std_logic_vector(3 downto 0);
+            output : out std_logic_vector(6 downto 0)
+        );
+    end component;
+
     -- memory buffer register 
     signal MBR : std_logic_vector(7 downto 0);
 
@@ -104,4 +111,11 @@ begin
 
 RAM : memram 
     port map (std_logic_vector(stack_ptr), clock, RAM_input, RAM_we, RAM_output);
+
+segment0 : segment_display 
+    port map (MBR(3 downto 0), digit0);
+
+segment1 : segment_display 
+    port map (MBR(7 downto 4), digit1);
+
 end cal;
