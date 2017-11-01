@@ -56,6 +56,8 @@ architecture cal of calculator is
 
 begin 
 
+    stackview <= std_logic_vector(stack_ptr);
+
     process(clock, reset, b2, b3, b4)
     begin 
         if reset = '0' then 
