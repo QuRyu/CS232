@@ -77,17 +77,19 @@ begin
   data <= "00000101";
 
   -- put data values into the MBR at 50, 100, 150
-  b2 <= '1', '0' after 55 ns, '1' after 200 ns;
+  b2 <= '1', '0' after 55 ns, '1' after 70 ns;
 
   -- push three values (1, 2, 3) onto the stack using b3 at time 70, 120, 170
-  b3 <= '1';
+  b3 <= '1', '0' after 75 ns, '1' after 80 ns, '0' after 100 ns, '1'
+after 110 ns;
 
   -- pop three values off the sack using b4 at times 220, 280, 340, should get
   -- 3, 2, 1 in that order
-  b4 <= '1';
+  b4 <= '1', '0' after 150 ns, '1' after 160 ns, '0' after 250 ns, '1'
+after 260 ns;
 
   -- operation
-  op <= "11", "00" after 100 ns;
+  op <= "11", "00" after 200 ns;
 
   -- port map the circuit
   L0: calculator port map(clk, reset, b2, b3, b4, op, data, digit0, digit1, stackview, stateview);
