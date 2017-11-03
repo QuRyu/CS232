@@ -12,7 +12,7 @@ entity calculator is
         b2        : in  std_logic;  -- move data to MBR
         b3        : in  std_logic;  -- push MBR to stack
         b4        : in  std_logic;  -- pop data from stack and compute
-        op        : in  std_logic_vector(1 downto 0);
+        op        : in  std_logic_vector(2 downto 0);
         data      : in  std_logic_vector(7 downto 0);
         digit0    : out std_logic_vector(6 downto 0);
         digit1    : out std_logic_vector(6 downto 0);
@@ -101,15 +101,17 @@ begin
                     state <= "0101";
                 when "0101" => -- computes!
                     case op is 
-                        when "00" => -- addition
+                        when "000" => -- addition
                             MBR <= std_logic_vector(unsigned(MBR) + unsigned(TEMPR));
-                        when "01" => -- subtraction
+                        when "001" => -- subtraction
                             MBR <= std_logic_vector(unsigned(MBR) - unsigned(TEMPR));
-                        when "10" => -- multiplication
+                        when "010" => -- multiplication
                             MBR <= std_logic_vector(unsigned(MBR(3 downto 0)) * 
                                      unsigned(TEMPR(3 downto 0)));
-                        when others => -- division
+                        when "011" => -- division
                             MBR <= std_logic_vector(unsigned(MBR) / unsigned(TEMPR));
+                        when others => -- modula
+                            MBR <= std_logic_vector(unsigned(MBR) mod unsigned(TEMPR));
                     end case;
                     state <= "1111";
                 when others => -- final state
