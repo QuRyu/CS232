@@ -16,7 +16,8 @@ entity calculator is
         data      : in  std_logic_vector(7 downto 0);
         digit0    : out std_logic_vector(6 downto 0);
         digit1    : out std_logic_vector(6 downto 0);
-        stackview : out std_logic_vector(3 downto 0)
+        stackview : out std_logic_vector(3 downto 0);
+        stateview : out std_logic_vector(3 downto 0)
     );
 end entity;
         
@@ -54,13 +55,10 @@ architecture cal of calculator is
     -- the state of execution 
     signal state : std_logic_vector(3 downto 0) := "0000";
 
-    -- slow down the clock
-    signal counter : unsigned(20 downto 0);
-    signal slowclock : std_logic;
-
 begin 
 
     stackview <= std_logic_vector(stack_ptr);
+    stateview <= state;
 
     process(clock, reset, b2, b3, b4)
     begin 
@@ -70,7 +68,7 @@ begin
             RAM_input <= "00000000";
             state     <= "0000";
             MBR       <= "00000000";
-        elsif rising_edge(slowclock) then 
+        elsif rising_edge(clock) then 
             case state is 
                 when "0000" => 
                     if b2 = '0' then -- move data to MBR
@@ -120,19 +118,8 @@ begin
         end if;
     end process;
 
-    process(clock, reset)
-    begin 
-        if reset = '0' then 
-            counter <= "000000000000000000000";
-        elsif rising_edge(clock) then 
-            counter <= counter + 1;
-        end if;
-    end process;
-
-    slowclock <= std_logic(counter(20));
-
 RAM : memram 
-    port map (std_logic_vector(stack_ptr), slowclock, RAM_input, RAM_we, RAM_output);
+    port map (std_logic_vector(stack_ptr), clock, RAM_input, RAM_we, RAM_output);
 
 segment0 : segment_display 
     port map (MBR(3 downto 0), digit0);
