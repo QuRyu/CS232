@@ -1,4 +1,4 @@
-library ieee;
+
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
@@ -22,7 +22,7 @@ end entity;
 
 architecture rlt of CPU is 
 
-    -- stack address pointer 
+    -- stack address pointer; for RAM
     signal stack_ptr : unsigned(15 downto 0);
 
     -- Registers 
@@ -38,9 +38,29 @@ architecture rlt of CPU is
 
     signal OUTREG : std_logic_vector(15 downto 0);
 
-    -- Program Counter
-    signal PC : std_logic_vector(7 downto 0);
+    -- Program Counter, connect to ROM for fetching instructions 
+    signal PC : std_logic_vector(7 downto 0) := "00000000";
 
+    -- state transition
+    signal state : std_logic_vector(3 downto 0) := "000";
+
+    -- counter for the startup state
+    signal startup_counter : unsigned(2 downto 0) := "0000";
+
+    -- ALU wires 
+    signal ALU_input1 : std_logic_vector(15 downto 0);
+    signal ALU_input2 : std_logic_vector(15 downto 0);
+    signal ALU_output : std_logic_vector(15 downto 0);
+    signal ALU_opcode : std_logic_vector(2 downto 0); -- operation code 
+    signal ALU_cr     : std_logic_vector(3 downto 0); -- condition outpus
+
+    -- RAM signals 
+    signal RAM_we     : std_logic;                     -- write signal
+    signal RAM_input  : std_logic_vector(7 downto 0);
+    signal RAM_output : std_logic_vector(15 downto 0);
+
+    -- ROM signals 
+    signal ROM_output : std_logic_vector(15 downto 0);
 
     component ProgramROM is 
         port (
@@ -54,7 +74,19 @@ architecture rlt of CPU is
         port (
             address : in  std_logic_vector(7 downto 0);
             clock   : in  std_logic;
+            data    : in  std_logic_vector(15 downto 0);
+            wren    : in  std_logic;
             q       : out std_logic_vector(15 downto 0)
+        );
+    end component;
+
+    component ALU is 
+        port (
+            srcA : in  unsigned(15 downto 0);
+            srcB : in  unsigned(15 downto 0);
+            op   : in  std_logic_vector(2 downto 0);
+            cr   : out std_logic_vector(3 downto 0);
+            dest : out unsigned(16 downto 0)
         );
     end component;
 
@@ -70,5 +102,30 @@ begin
     REview <= E;
 
     oport <= OUTREG;
+
+    process(clk, reset) 
+    begin 
+        if reset = '0' then 
+            PC <= "00000000";
+            MBR <= "0000000000000000";
+            MAR <= "00000000";
+            IR <= "0000000000000000";
+            state <= "0000";
+        elsif rising_edge(clk) then 
+            case state is 
+                when "0000" => -- start state 
+                when "0001" => -- fetch state 
+                when "0010" => -- setup 
+                when "0011" => -- ALU 
+                when "0100" => -- MemWait
+                when "0101" => -- Write 
+                when "0110" => -- Pause1 
+                when "0111" => -- Pause2
+                when "1000" => -- halt
+            end case;
+
+        end if;
+
+    end process;
 
 end architecture;
