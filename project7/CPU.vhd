@@ -1,4 +1,4 @@
-
+library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
@@ -42,10 +42,10 @@ architecture rlt of CPU is
     signal PC : std_logic_vector(7 downto 0) := "00000000";
 
     -- state transition
-    signal state : std_logic_vector(3 downto 0) := "000";
+    signal state : std_logic_vector(3 downto 0) := "0000";
 
     -- counter for the startup state
-    signal startup_counter : unsigned(2 downto 0) := "0000";
+    signal startup_counter : unsigned(2 downto 0) := "000";
 
     -- ALU wires 
     signal ALU_input1 : std_logic_vector(15 downto 0);
@@ -108,7 +108,7 @@ begin
         if reset = '0' then 
             PC <= "00000000";
             MBR <= "0000000000000000";
-            MAR <= "00000000";
+            MAR <= "0000000";
             IR <= "0000000000000000";
             state <= "0000";
         elsif rising_edge(clk) then 
@@ -122,6 +122,8 @@ begin
                 when "0110" => -- Pause1 
                 when "0111" => -- Pause2
                 when "1000" => -- halt
+                when others =>
+                     NULL;
             end case;
 
         end if;
