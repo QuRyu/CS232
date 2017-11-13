@@ -50,13 +50,13 @@ architecture rlt of CPU is
     -- ALU wires 
     signal ALU_input1 : std_logic_vector(15 downto 0);
     signal ALU_input2 : std_logic_vector(15 downto 0);
-    signal ALU_output : std_logic_vector(15 downto 0);
+    signal ALU_output : unsigned(15 downto 0);
     signal ALU_opcode : std_logic_vector(2 downto 0); -- operation code 
     signal ALU_cr     : std_logic_vector(3 downto 0); -- condition outpus
 
     -- RAM signals 
     signal RAM_we     : std_logic;                     -- write signal
-    signal RAM_input  : std_logic_vector(7 downto 0);
+    signal RAM_input  : std_logic_vector(15 downto 0);
     signal RAM_output : std_logic_vector(15 downto 0);
 
     -- ROM signals 
@@ -86,7 +86,7 @@ architecture rlt of CPU is
             srcB : in  unsigned(15 downto 0);
             op   : in  std_logic_vector(2 downto 0);
             cr   : out std_logic_vector(3 downto 0);
-            dest : out unsigned(16 downto 0)
+            dest : out unsigned(15 downto 0)
         );
     end component;
 
@@ -132,12 +132,12 @@ begin
 
 
     memory : DataRAM 
-        port map (std_logic_vector(stack_ptr), clk, RAM_input, RAM_we, RAM_output);
+        port map (std_logic_vector(stack_ptr(7 downto 0)), clk, RAM_input, RAM_we, RAM_output);
 
     instrucitnos : ProgramROM 
         port map (PC, clk, ROM_output);
 
     calc : ALU 
-        port map (ALU_input1, ALU_input2, ALU_opcode, ALU_cr, ALU_output);
+        port map (unsigned(ALU_input1), unsigned(ALU_input2), ALU_opcode, ALU_cr, ALU_output);
 
 end architecture;
