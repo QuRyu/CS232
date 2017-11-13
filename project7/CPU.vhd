@@ -130,4 +130,14 @@ begin
 
     end process;
 
+
+    memory : DataRAM 
+        port map (std_logic_vector(stack_ptr), clk, RAM_input, RAM_we, RAM_output);
+
+    instrucitnos : ProgramROM 
+        port map (PC, clk, ROM_output);
+
+    calc : ALU 
+        port map (ALU_input1, ALU_input2, ALU_opcode, ALU_cr, ALU_output);
+
 end architecture;
