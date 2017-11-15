@@ -26,6 +26,8 @@ architecture rlt of CPU is
 
     constant zeros_15 : std_logic_vector(15 downto 0) := "0000000000000000";
     constant ones_15 : std_logic_vector(15 downto 0) := "1111111111111111";
+	 
+	 type state_type is (sStartup, sHalt, sFetch, sSetup, sALU, sMemWait, sWrite, sPause1, sPause2);
 
     -- stack address pointer; for RAM
     signal stack_ptr : unsigned(15 downto 0) := unsigned(zeros_15);
@@ -47,7 +49,7 @@ architecture rlt of CPU is
     signal PC : std_logic_vector(7 downto 0) := "00000000";
 
     -- state transition
-    signal state : std_logic_vector(3 downto 0) := "0000";
+    signal state : state_type := sSTARTUP;
 
     -- counter for the startup state
     signal startup_counter : unsigned(2 downto 0) := "000";
@@ -117,7 +119,7 @@ begin
             MBR <= zeros_15;
             MAR <= "00000000";
             IR <= "0000000000000000";
-            state <= "0000";
+            state <= sStartup;
             OUTREG <= zeros_15;
             A <= zeros_15;
             B <= zeros_15;
@@ -126,46 +128,59 @@ begin
             E <= zeros_15;
             CR <= "0000";
             stack_ptr <= unsigned(zeros_15);
+				startup_counter <= "000";
         elsif rising_edge(clk) then 
             case state is 
-                when "0000" => -- start state 
+                when sStartup => -- start state 
                     if startup_counter = "111" then 
-                        state <= "0001";
+                        state <= sFetch;
                     else 
                         startup_counter <= startup_counter + 1;
                     end if;
-                when "0001" => -- fetch state 
+						  
+						  
+						  
+                when sFetch => -- fetch state 
                     IR <= ROM_output;
                     PC <= std_logic_vector(unsigned(PC) + 1);
-                    state <= "0010";
-                when "0010" => -- setup 
-                        if IR(15 downto 12) = "0000" or IR(15 downto 12) = "0001" then -- load and store instructions 
+                    state <= sSetup;
+						  
+						  
+				    -- SETUP STATE
+                when sSetup => 
+                    case IR(15 downto 12) is 
+                        when "0000" | "0001" => -- load and store instructions 
                             if IR(11) = '1' then 
                                 MAR <= std_logic_vector(unsigned(IR(7 downto 0)) + unsigned(E(7 downto 0)));
                             else 
                                 MAR <= IR(7 downto 0);
                             end if;
 
-                            if IR(15 downto 12) = "0001" then -- store instruction, write MBR
-                                case IR(10 downto 8) is 
-                                    when "000" => -- RA
-                                        MBR <= A;
-                                    when "001" => -- RB
-                                        MBR <= B;
-                                    when "010" => -- RC
-                                        MBR <= C;
-                                    when "011" => -- RD
-                                        MBR <= D;
-                                    when "100" => -- RE
-                                        MBR <= E;
-                                    when others => -- SP
-                                        MBR <= std_logic_vector(stack_ptr);
-                                end case;
-                            end if;
-                        elsif IR(15 downto 12) = "0010" then -- unconditional branch
+                            case IR(10 downto 8) is 
+                                when "000" => -- RA
+                                    MBR <= A;
+                                when "001" => -- RB
+                                    MBR <= B;
+                                when "010" => -- RC
+                                    MBR <= C;
+                                when "011" => -- RD
+                                    MBR <= D;
+                                when "100" => -- RE
+                                    MBR <= E;
+                                when "101" => -- SP
+                                    MBR <= std_logic_vector(stack_ptr);
+											when others => 
+											   null;
+                            end case;
+									 
+									 
+                        when "0010" => -- unconditional branch
                             PC <= IR(7 downto 0);
-                        elsif IR(15 downto 12) = "0011" then -- CALL, RETURN, conditional branch
+									 
+									 
+                        when "0011" => -- CALL, RETURN, conditional branch
                             case IR(11 downto 10) is 
+									 
                                 when "00" => -- conditional branch
                                     case IR(9 downto 8) is 
                                         when "00" => -- zero 
@@ -185,18 +200,24 @@ begin
                                                 PC <= IR(7 downto 0);
                                             end if;
                                     end case;
-                                when "01" => -- CALL 
+												
+										  -- CALL 
+                                when "01" => 
                                     PC <= IR(7 downto 0);
                                     MAR <= std_logic_vector(stack_ptr(7 downto 0));
                                     MBR <= "0000" & CR & PC;
                                     stack_ptr <= stack_ptr + 1;
-                                when others => -- RETURN
+												
+										  -- RETURN	
+                                when "10" => 
                                     MAR <= std_logic_vector(stack_ptr(7 downto 0)-1);
-                                    if not(stack_ptr = 0) then 
-                                        stack_ptr <= stack_ptr - 1;
-                                    end if;
+                                    stack_ptr <= stack_ptr - 1;
+											when others =>
+												null;
                             end case;
-                        elsif IR(15 downto 12) = "0100" then -- push 
+									 
+									 
+                        when "0100" => -- push 
                             MAR <= std_logic_vector(stack_ptr(7 downto 0));
                             stack_ptr <= stack_ptr + 1;
                             case IR(11 downto 9) is 
@@ -217,10 +238,14 @@ begin
                                 when others => -- CR 
                                     MBR <= "000000000000" & CR;
                             end case;
-                        elsif IR(15 downto 12) = "0101" then -- pop 
+									 
+                         -- POP
+                        when "0101" => 
                             MAR <= std_logic_vector(stack_ptr(7 downto 0)-1);
                             stack_ptr <= stack_ptr - 1;
-                        elsif IR(15 downto 12) = "1111" then -- move 
+									 
+                        -- MOVE
+                        when "1111" =>  
                             ALU_opcode <= "111";
                             if IR(11) = '1' then -- immediate value
                                 if IR(10) = '1' then 
@@ -248,8 +273,12 @@ begin
                                         ALU_input1 <= IR;
                                 end case;
                             end if;
-                         elsif IR(15 downto 12) = "1101" or IR(15 downto 12) = "1110" then -- unary operation
+									 
+
+								 -- UNARY OPERATION
+                         when "1101" | "1110" => 
                              ALU_opcode <= IR(14 downto 12);
+									  
                             case IR(10 downto 8) is  
                                 when "000" => -- RA
                                     ALU_input1 <= A;
@@ -268,12 +297,16 @@ begin
                                 when others => -- ones 
                                     ALU_input1 <= ones_15;
                             end case;
-                            if IR(11) = '0' then -- left 
-                                ALU_input2 <= zeros_15;
+									 
+                            if IR(11) = '0' then -- set direction of the unary operation 
+                                ALU_input2 <= zeros_15; -- left
                             else 
-                                ALU_input2 <= ones_15;
+                                ALU_input2 <= ones_15; -- right
                             end if;
-                        else  -- binary operation
+									 
+									 
+							   -- BINARY OPERATIONS
+                        when "1000" | "1001" | "1010" | "1011" | "1100" => 
                             ALU_opcode <= IR(14 downto 12);
                             case IR(11 downto 9) is 
                                 when "000" => -- RA
@@ -312,14 +345,20 @@ begin
                                 when others => -- ones 
                                     ALU_input2 <= ones_15;
                             end case;
-                        end if;
+								when others => 
+							       null;
+                    end case;
 
-                        if IR(15 downto 10) = "001111" then -- EXIT state
-                            state <= "1111"; 
-                        else 
-                            state <= "0011";
-                        end if;
-                when "0011" => -- process 
+						  -- EXIT state
+                    if IR(15 downto 10) = "001111" then 
+                        state <= sHalt; 
+                    else 
+                        state <= sALU;
+                    end if;
+								
+								
+								
+                when sALU => -- process 
                     if IR(15 downto 12) = "0001" or IR(15 downto 12) = "0100"
                             or IR(15 downto 10) = "001101" then -- store, push, or call
                         RAM_we <= '1';
@@ -327,13 +366,19 @@ begin
 
                     if IR(15 downto 12) = "0101" or IR(15 downto 12) = "0000" 
                             or IR(15 downto 10) = "000110" then 
-                        state <= "0100"; -- pop, load, return instructions go to wait state
+                        state <= sMemWait; -- pop, load, return instructions go to wait state
                     else 
-                        state <= "0101";
+                        state <= sWrite;
                     end if;
-                when "0100" => -- MemWait
-                    state <= "0101";
-                when "0101" => -- Write 
+						  
+						  
+						  
+                when sMemWait => -- MemWait
+                    state <= sWrite;
+						  
+						  
+						  
+                when sWrite => -- Write 
                     RAM_we <= '0';
                     if IR(15 downto 12) = "0000" then  -- load 
                         case IR(10 downto 8) is 
@@ -350,6 +395,8 @@ begin
                             when others => -- SP
                                 stack_ptr <= unsigned(RAM_output);
                         end case;
+								
+								
                     elsif IR(15 downto 12) = "0101" then -- pop
                         case IR(11 downto 9) is 
                             when "000" => -- RA
@@ -369,6 +416,8 @@ begin
                             when others => -- CR 
                                 CR <= RAM_output(3 downto 0);
                         end case;
+								
+								
                     elsif IR(15 downto 12) = "0110" then -- store to output
                         case IR(11 downto 9) is 
                             when "000" => -- RA
@@ -388,6 +437,8 @@ begin
                             when others => -- IR 
                                 OUTREG <= IR;
                         end case;
+								
+								
                     elsif IR(15 downto 12) = "0111" then -- load from input
                         case IR(11 downto 9) is 
                             when "000" => -- RA
@@ -403,6 +454,8 @@ begin
                             when others => -- SP 
                                 stack_ptr <= unsigned("00000000" & iport);
                         end case;
+								
+								
                     elsif IR(15 downto 12) = "1111" then -- move 
                         case IR(2 downto 0) is 
                             when "000" => -- RA
@@ -419,13 +472,19 @@ begin
                                 stack_ptr <= ALU_output;
                         end case;
                         CR <= ALU_cr;
+								
+								
                     elsif IR(15 downto 12) = "0001" or IR(15 downto 12) = "0010"
                         or IR(15 downto 10) = "001100" or IR(15 downto 12) = "0100" then 
                             -- store, unconditional branch, conditional branch, and push 
                         NULL;
+								
+								
                     elsif IR(15 downto 10) = "001110" then -- RETURN
                         PC <= RAM_output(7 downto 0);
                         CR <= RAM_output(11 downto 8);
+								
+								
                     else -- arithmetic operations
                         case IR(2 downto 0) is 
                             when "000" => -- RA
@@ -444,19 +503,26 @@ begin
                         CR <= ALU_cr;
                     end if;
 
+						  
                     if IR(15 downto 10) = "001110" then 
-                        state <= "0110"; -- RETURN instruction goes to PAUSE1 
+                        state <= sPause1; -- RETURN instruction goes to PAUSE1 
                     else 
-                        state <= "1000";
+                        state <= sFetch;
                     end if;
-                when "0110" => -- Pause1 
-                    state <= "0111";
-                when "0111" => -- Pause2
-                    state <= "1000";
-                when "1000" => -- final state  
-                    state <= "0001";
-                when others => -- halt
-                    NULL;
+						  
+						  
+						  
+                when sPause1 => -- Pause1 
+                    state <= sPause2;
+						  
+						  
+						  
+                when sPause2 => -- Pause2
+                    state <= sFetch;
+						  
+						  
+                when sHalt =>
+							state <= sFetch;
             end case;
 
         end if;
