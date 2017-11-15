@@ -1,0 +1,22 @@
+-- program memory file for testcall.a
+DEPTH = 256;
+WIDTH = 16;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = BIN;
+CONTENT
+BEGIN
+00 : 1111100000001000; -- RA = 1 (move)
+01 : 1111100000001001; -- RB = 1 (move)
+02 : 1111100000000010; -- RC = 0 (move)
+03 : 1111111111111011; -- RD = -1 (move)
+04 : 1111100001001100; -- RE = 9 (move)
+05 : 1000000001000010; -- RC = RA + RB
+06 : 1111000000000001; -- RB = RA 
+07 : 1111001000000000; -- RA = RC
+08 : 0110000000000000; -- output RA
+09 : 1000100011000100; -- RE = RE + RD(-1)
+0A : 0011000000001100; -- if RE = 0, then terminate; else, loop
+0B : 0010000000000101; -- unconditional jump to 05 
+0C : 0011110000000000; -- exit
+[0D..FF] : 1111111111111111;
+END
