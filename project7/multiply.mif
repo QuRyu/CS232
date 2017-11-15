@@ -1,0 +1,20 @@
+-- program memory file for multiplying 5 and 3 
+-- 5 times 3 is equivalent to 5 + 5 + 5
+DEPTH = 256;
+WIDTH = 16;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = BIN;
+CONTENT
+BEGIN
+00 : 1111100000101000; -- RA = 5 (move)
+01 : 1111100000010001; -- RB = 2 (move)
+02 : 1111111111111010; -- RC = -1 (move)
+03 : 1111100000101011; -- RD = 5 (move)
+04 : 1000000011000000; -- RA = RA + RD(5)
+05 : 1000001010000001; -- RB = RB + RC(-1)
+06 : 0011000000001000; -- if RB is 0, jump to 08
+07 : 0010000000000100; -- unconditional jump to 04
+08 : 0110000000000000; -- output RA
+09 : 0011110000000000; -- halt
+[0A..FF] : 1111111111111111;
+END
