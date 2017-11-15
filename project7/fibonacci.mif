@@ -1,4 +1,5 @@
--- program memory file for testcall.a
+-- program memory file for outputing the first ten fibonacci numbers
+-- the first two numbers, 1 and 1, are not output 
 DEPTH = 256;
 WIDTH = 16;
 ADDRESS_RADIX = HEX;
