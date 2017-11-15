@@ -148,6 +148,8 @@ begin
 						  
 				    -- SETUP STATE
                 when sSetup => 
+                    ALU_opcode <= IR(14 downto 12);
+
                     case IR(15 downto 12) is 
                         when "0000" | "0001" => -- load and store instructions 
                             if IR(11) = '1' then 
@@ -201,22 +203,23 @@ begin
                                             end if;
                                     end case;
 												
-										  -- CALL 
+                                -- CALL 
                                 when "01" => 
                                     PC <= IR(7 downto 0);
                                     MAR <= std_logic_vector(stack_ptr(7 downto 0));
                                     MBR <= "0000" & CR & PC;
                                     stack_ptr <= stack_ptr + 1;
 												
-										  -- RETURN	
+                                -- RETURN	
                                 when "10" => 
                                     MAR <= std_logic_vector(stack_ptr(7 downto 0)-1);
                                     stack_ptr <= stack_ptr - 1;
-											when others =>
-												null;
+
+                                when others =>
+                                null;
                             end case;
-									 
-									 
+
+
                         when "0100" => -- push 
                             MAR <= std_logic_vector(stack_ptr(7 downto 0));
                             stack_ptr <= stack_ptr + 1;
@@ -244,70 +247,8 @@ begin
                             MAR <= std_logic_vector(stack_ptr(7 downto 0)-1);
                             stack_ptr <= stack_ptr - 1;
 									 
-                        -- MOVE
-                        when "1111" =>  
-                            ALU_opcode <= "111";
-                            if IR(11) = '1' then -- immediate value
-                                if IR(10) = '1' then 
-                                    ALU_input1 <= "11111111" & IR(10 downto 3);
-                                else 
-                                    ALU_input1 <= "00000000" & IR(10 downto 3);
-                                end if;
-                            else -- register
-                                case IR(10 downto 8) is 
-                                    when "000" => -- RA 
-                                        ALU_input1 <= A;
-                                    when "001" => -- RB
-                                        ALU_input1 <= B;
-                                    when "010" => -- RC
-                                        ALU_input1 <= C;
-                                    when "011" => -- RD
-                                        ALU_input1 <= D;
-                                    when "100" => -- RE
-                                        ALU_input1 <= E;
-                                    when "101" => -- SP
-                                        ALU_input1 <= std_logic_vector(stack_ptr);
-                                    when "110" => -- PC
-                                        ALU_input1 <= "00000000" & PC;
-                                    when others => -- IR 
-                                        ALU_input1 <= IR;
-                                end case;
-                            end if;
-									 
-
-								 -- UNARY OPERATION
-                         when "1101" | "1110" => 
-                             ALU_opcode <= IR(14 downto 12);
-									  
-                            case IR(10 downto 8) is  
-                                when "000" => -- RA
-                                    ALU_input1 <= A;
-                                when "001" => -- RB
-                                    ALU_input1 <= B;
-                                when "010" => -- RC
-                                    ALU_input1 <= C;
-                                when "011" => -- RD
-                                    ALU_input1 <= D;
-                                when "100" => -- RE
-                                    ALU_input1 <= E;
-                                when "101" => -- SP 
-                                    ALU_input1 <= std_logic_vector(stack_ptr);
-                                when "110" => -- zeros 
-                                    ALU_input1 <= zeros_15;
-                                when others => -- ones 
-                                    ALU_input1 <= ones_15;
-                            end case;
-									 
-                            if IR(11) = '0' then -- set direction of the unary operation 
-                                ALU_input2 <= zeros_15; -- left
-                            else 
-                                ALU_input2 <= ones_15; -- right
-                            end if;
-									 
-									 
-							   -- BINARY OPERATIONS
+                        -- BINARY OPERATIONS
                         when "1000" | "1001" | "1010" | "1011" | "1100" => 
-                            ALU_opcode <= IR(14 downto 12);
                             case IR(11 downto 9) is 
                                 when "000" => -- RA
                                     ALU_input1 <= A;
@@ -345,8 +286,67 @@ begin
                                 when others => -- ones 
                                     ALU_input2 <= ones_15;
                             end case;
-								when others => 
-							       null;
+
+                         -- UNARY OPERATION
+                         when "1101" | "1110" => 
+									  
+                            case IR(10 downto 8) is  
+                                when "000" => -- RA
+                                    ALU_input1 <= A;
+                                when "001" => -- RB
+                                    ALU_input1 <= B;
+                                when "010" => -- RC
+                                    ALU_input1 <= C;
+                                when "011" => -- RD
+                                    ALU_input1 <= D;
+                                when "100" => -- RE
+                                    ALU_input1 <= E;
+                                when "101" => -- SP 
+                                    ALU_input1 <= std_logic_vector(stack_ptr);
+                                when "110" => -- zeros 
+                                    ALU_input1 <= zeros_15;
+                                when others => -- ones 
+                                    ALU_input1 <= ones_15;
+                            end case;
+									 
+                            if IR(11) = '0' then -- set direction of the unary operation 
+                                ALU_input2 <= zeros_15; -- left
+                            else 
+                                ALU_input2 <= ones_15; -- right
+                            end if;
+
+                        -- MOVE
+                        when "1111" =>  
+                            if IR(11) = '1' then -- immediate value
+                                if IR(10) = '1' then 
+                                    ALU_input1 <= "11111111" & IR(10 downto 3);
+                                else 
+                                    ALU_input1 <= "00000000" & IR(10 downto 3);
+                                end if;
+                            else -- register
+                                case IR(10 downto 8) is 
+                                    when "000" => -- RA 
+                                        ALU_input1 <= A;
+                                    when "001" => -- RB
+                                        ALU_input1 <= B;
+                                    when "010" => -- RC
+                                        ALU_input1 <= C;
+                                    when "011" => -- RD
+                                        ALU_input1 <= D;
+                                    when "100" => -- RE
+                                        ALU_input1 <= E;
+                                    when "101" => -- SP
+                                        ALU_input1 <= std_logic_vector(stack_ptr);
+                                    when "110" => -- PC
+                                        ALU_input1 <= "00000000" & PC;
+                                    when others => -- IR 
+                                        ALU_input1 <= IR;
+                                end case;
+                            end if;
+									 
+
+                       when others => 
+                           null;
                     end case;
 
 						  -- EXIT state
@@ -365,8 +365,8 @@ begin
                     end if;
 
                     if IR(15 downto 12) = "0101" or IR(15 downto 12) = "0000" 
-                            or IR(15 downto 10) = "000110" then 
-                        state <= sMemWait; -- pop, load, return instructions go to wait state
+                            or IR(15 downto 10) = "000110" or IR(15 downto 10) = "001101" then 
+                        state <= sMemWait; -- pop, load, return, call instructions go to wait state
                     else 
                         state <= sWrite;
                     end if;
@@ -380,130 +380,148 @@ begin
 						  
                 when sWrite => -- Write 
                     RAM_we <= '0';
-                    if IR(15 downto 12) = "0000" then  -- load 
-                        case IR(10 downto 8) is 
-                            when "000" => -- RA
-                                A <= RAM_output;
-                            when "001" => -- RB
-                                B <= RAM_output;
-                            when "010" => -- RC
-                                C <= RAM_output;
-                            when "011" => -- RD
-                                D <= RAM_output;
-                            when "100" => -- RE
-                                E <= RAM_output;
-                            when others => -- SP
-                                stack_ptr <= unsigned(RAM_output);
-                        end case;
-								
-								
-                    elsif IR(15 downto 12) = "0101" then -- pop
-                        case IR(11 downto 9) is 
-                            when "000" => -- RA
-                                A <= RAM_output;
-                            when "001" => -- RB
-                                B <= RAM_output;
-                            when "010" => -- RC
-                                C <= RAM_output;
-                            when "011" => -- RD
-                                D <= RAM_output;
-                            when "100" => -- RE
-                                E <= RAM_output;
-                            when "101" => -- SP 
-                                stack_ptr <= unsigned(RAM_output);
-                            when "110" => -- PC 
-                                PC <= RAM_output(7 downto 0);
-                            when others => -- CR 
-                                CR <= RAM_output(3 downto 0);
-                        end case;
-								
-								
-                    elsif IR(15 downto 12) = "0110" then -- store to output
-                        case IR(11 downto 9) is 
-                            when "000" => -- RA
-                                OUTREG <= A;
-                            when "001" => -- RB
-                                OUTREG <= B;
-                            when "010" => -- RC
-                                OUTREG <= C;
-                            when "011" => -- RD
-                                OUTREG <= D;
-                            when "100" => -- RE
-                                OUTREG <= E;
-                            when "101" => -- SP 
-                                OUTREG <= std_logic_vector(stack_ptr);
-                            when "110" => -- PC 
-                                OUTREG <= "00000000" & PC;
-                            when others => -- IR 
-                                OUTREG <= IR;
-                        end case;
-								
-								
-                    elsif IR(15 downto 12) = "0111" then -- load from input
-                        case IR(11 downto 9) is 
-                            when "000" => -- RA
-                                A <= "00000000" & iport;
-                            when "001" => -- RB
-                                B <= "00000000" & iport;
-                            when "010" => -- RC
-                                C <= "00000000" & iport;
-                            when "011" => -- RD
-                                D <= "00000000" & iport;
-                            when "100" => -- RE
-                                E <= "00000000" & iport;
-                            when others => -- SP 
-                                stack_ptr <= unsigned("00000000" & iport);
-                        end case;
-								
-								
-                    elsif IR(15 downto 12) = "1111" then -- move 
-                        case IR(2 downto 0) is 
-                            when "000" => -- RA
-                                A <= std_logic_vector(ALU_output);
-                            when "001" => -- RB
-                                B <= std_logic_vector(ALU_output);
-                            when "010" => -- RC
-                                C <= std_logic_vector(ALU_output);
-                            when "011" => -- RD
-                                D <= std_logic_vector(ALU_output);
-                            when "100" => -- RE
-                                E <= std_logic_vector(ALU_output);
-                            when others => -- SP 
-                                stack_ptr <= ALU_output;
-                        end case;
-                        CR <= ALU_cr;
-								
-								
-                    elsif IR(15 downto 12) = "0001" or IR(15 downto 12) = "0010"
-                        or IR(15 downto 10) = "001100" or IR(15 downto 12) = "0100" then 
-                            -- store, unconditional branch, conditional branch, and push 
-                        NULL;
-								
-								
-                    elsif IR(15 downto 10) = "001110" then -- RETURN
-                        PC <= RAM_output(7 downto 0);
-                        CR <= RAM_output(11 downto 8);
-								
-								
-                    else -- arithmetic operations
-                        case IR(2 downto 0) is 
-                            when "000" => -- RA
-                                A <= std_logic_vector(ALU_output);
-                            when "001" => -- RB
-                                B <= std_logic_vector(ALU_output);
-                            when "010" => -- RC
-                                C <= std_logic_vector(ALU_output);
-                            when "011" => -- RD
-                                D <= std_logic_vector(ALU_output);
-                            when "100" => -- RE
-                                E <= std_logic_vector(ALU_output);
-                            when others => -- SP 
-                                stack_ptr <= ALU_output;
-                        end case;
-                        CR <= ALU_cr;
-                    end if;
 
-						  
+                    case IR(15 downto 12) is 
+                        -- LOAD
+                        when "0000" => 
+                            case IR(10 downto 8) is 
+                                when "000" => -- RA
+                                    A <= RAM_output;
+                                when "001" => -- RB
+                                    B <= RAM_output;
+                                when "010" => -- RC
+                                    C <= RAM_output;
+                                when "011" => -- RD
+                                    D <= RAM_output;
+                                when "100" => -- RE
+                                    E <= RAM_output;
+                                when "101" => -- SP
+                                    stack_ptr <= unsigned(RAM_output);
+                                when others => 
+                                    null;
+                            end case;
+
+                        -- RETURN
+                        when "0011" => 
+                            if IR(11 downto 10) then 
+                                PC <= RAM_output(7 downto 0);
+                                CR <= RAM_output(11 downto 8);
+                            end if;
+    								
+    								
+                        -- POP
+                        when "0101" => 
+                            case IR(11 downto 9) is 
+                                when "000" => -- RA
+                                    A <= RAM_output;
+                                when "001" => -- RB
+                                    B <= RAM_output;
+                                when "010" => -- RC
+                                    C <= RAM_output;
+                                when "011" => -- RD
+                                    D <= RAM_output;
+                                when "100" => -- RE
+                                    E <= RAM_output;
+                                when "101" => -- SP 
+                                    stack_ptr <= unsigned(RAM_output);
+                                when "110" => -- PC 
+                                    PC <= RAM_output(7 downto 0);
+                                when others => -- CR 
+                                    CR <= RAM_output(3 downto 0);
+                            end case;
+    								
+    								
+                        -- STORE to OUTPUT
+                        when "0110" => 
+                            case IR(11 downto 9) is 
+                                when "000" => -- RA
+                                    OUTREG <= A;
+                                when "001" => -- RB
+                                    OUTREG <= B;
+                                when "010" => -- RC
+                                    OUTREG <= C;
+                                when "011" => -- RD
+                                    OUTREG <= D;
+                                when "100" => -- RE
+                                    OUTREG <= E;
+                                when "101" => -- SP 
+                                    OUTREG <= std_logic_vector(stack_ptr);
+                                when "110" => -- PC 
+                                    OUTREG <= "00000000" & PC;
+                                when others => -- IR 
+                                    OUTREG <= IR;
+                            end case;
+    								
+    								
+                        when "0111" => -- load from input
+                            case IR(11 downto 9) is 
+                                when "000" => -- RA
+                                    A <= "00000000" & iport;
+                                when "001" => -- RB
+                                    B <= "00000000" & iport;
+                                when "010" => -- RC
+                                    C <= "00000000" & iport;
+                                when "011" => -- RD
+                                    D <= "00000000" & iport;
+                                when "100" => -- RE
+                                    E <= "00000000" & iport;
+                                when "101" => -- SP 
+                                    stack_ptr <= unsigned("00000000" & iport);
+                                when others => 
+                                    null;
+                            end case;
+
+                        -- BINARY and UNARY operations
+                        when "1000" | "1001" | "1010" | "1011" | "1100" | "1101" | "1110" =>
+                            case IR(2 downto 0) is 
+                                when "000" => -- RA
+                                    A <= std_logic_vector(ALU_output);
+                                when "001" => -- RB
+                                    B <= std_logic_vector(ALU_output);
+                                when "010" => -- RC
+                                    C <= std_logic_vector(ALU_output);
+                                when "011" => -- RD
+                                    D <= std_logic_vector(ALU_output);
+                                when "100" => -- RE
+                                    E <= std_logic_vector(ALU_output);
+                                when "101" => -- SP 
+                                    stack_ptr <= ALU_output;
+                                when others =>
+                                    null;
+                            end case;
+
+                            CR <= ALU_cr;
+    								
+    								
+                        -- MOVE
+                        when "1111" => 
+                            case IR(2 downto 0) is 
+                                when "000" => -- RA
+                                    A <= std_logic_vector(ALU_output);
+                                when "001" => -- RB
+                                    B <= std_logic_vector(ALU_output);
+                                when "010" => -- RC
+                                    C <= std_logic_vector(ALU_output);
+                                when "011" => -- RD
+                                    D <= std_logic_vector(ALU_output);
+                                when "100" => -- RE
+                                    E <= std_logic_vector(ALU_output);
+                                when "101" => -- SP 
+                                    stack_ptr <= ALU_output;
+                                when others =>
+                                    null;
+                            end case;
+
+                            CR <= ALU_cr;
+    								
+    								
+
+                        when others =>
+                            -- store, unconditional branch, conditional branch, call, push 
+                            null;
+                    end case;
+    
+    						  
                     if IR(15 downto 10) = "001110" then 
                         state <= sPause1; -- RETURN instruction goes to PAUSE1 
                     else 
@@ -522,7 +540,8 @@ begin
 						  
 						  
                 when sHalt =>
-							state <= sFetch;
+                    state <= sFetch;
+
             end case;
 
         end if;
