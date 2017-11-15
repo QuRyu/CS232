@@ -363,15 +363,13 @@ begin
                             or IR(15 downto 10) = "001101" then -- store, push, or call
                         RAM_we <= '1';
                     end if;
-
-                    if IR(15 downto 12) = "0101" or IR(15 downto 12) = "0000" 
-                            or IR(15 downto 10) = "000110" or IR(15 downto 10) = "001101" then 
-                        state <= sMemWait; -- pop, load, return, call instructions go to wait state
-                    else 
-                        state <= sWrite;
-                    end if;
 						  
 						  
+						  if IR(15 downto 12) = "0101" or IR(15 downto 12) = "0000" or IR(15 downto 10) = "001110" then
+						      state <= sMemWait;
+						  else 
+							   state <= sWrite;
+						  end if;
 						  
                 when sMemWait => -- MemWait
                     state <= sWrite;
@@ -403,7 +401,7 @@ begin
 
                         -- RETURN
                         when "0011" => 
-                            if IR(11 downto 10) then 
+                            if IR(11 downto 10) = "10" then 
                                 PC <= RAM_output(7 downto 0);
                                 CR <= RAM_output(11 downto 8);
                             end if;
