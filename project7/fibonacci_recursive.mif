@@ -1,0 +1,33 @@
+-- program memory file for outputing the first ten fibonacci numbers
+-- the first two numbers, 1 and 1, are not output 
+DEPTH = 256;
+WIDTH = 16;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = BIN;
+CONTENT
+BEGIN
+00: 1111100000000000; -- RA = 0
+01: 1111100001010001; -- RB = 10
+02: 1111111111111010; -- RC = -1
+03: 0011010000000111; -- Call fib
+04: 0110000000000000; -- output RA
+05: 0010000000010111; -- jump to last line
+06: 0100001000000000; -- This IS fib; save RB 
+07: 1111000100000001; -- test if RB is zero
+08: 0011000000010100; -- if zero, jump to RETURN1
+09: 1000001010000100; -- test if RB-1 is zero
+0A: 0011000000010100; -- if zero, jump to RETURN1
+0B: 1000001010000001; -- RB = RB - 1
+0C: 0011010000000111; -- call fib
+0D: 1000001010000001; -- RB = RB - 1
+0E: 1111000000000011; -- store the call result in RD
+0F: 0011010000000111; -- call fib 
+10: 1000000011000000; -- RA = RA + RD; sum up the results of two fib calls
+11: 0101001000000000; -- pop RB
+12: 0011100000000000; -- return 
+13: 1111100000001000; -- This is RETURN1; RA = 1
+14: 0101001000000000; -- pop RB 
+15: 0011100000000000; -- return
+16: 0011110000000000; -- This is last time; exit
+[17..FF] : 1111111111111111;
+END
