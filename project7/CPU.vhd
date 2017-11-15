@@ -107,8 +107,8 @@ begin
     REview <= E;
 
     oport <= OUTREG;
-	 oSP <= std_logic_vector(stack_ptr);
-	 oRAM_output <= RAM_output;
+	oSP <= std_logic_vector(stack_ptr);
+	oRAM_output <= RAM_output;
 
     process(clk, reset) 
     begin 
@@ -145,9 +145,26 @@ begin
                             else 
                                 MAR <= IR(7 downto 0);
                             end if;
+
+                            if IR(15 downto 12) = "0001" then -- store instruction, write MBR
+                                case IR(10 downto 8) is 
+                                    when "000" => -- RA
+                                        MBR <= A;
+                                    when "001" => -- RB
+                                        MBR <= B;
+                                    when "010" => -- RC
+                                        MBR <= C;
+                                    when "011" => -- RD
+                                        MBR <= D;
+                                    when "100" => -- RE
+                                        MBR <= E;
+                                    when others => -- SP
+                                        MBR <= std_logic_vector(stack_ptr);
+                                end case;
+                            end if;
                         elsif IR(15 downto 12) = "0010" then -- unconditional branch
                             PC <= IR(7 downto 0);
-                        elsif IR(15 downto 12) = "0011" then -- conditional branch
+                        elsif IR(15 downto 12) = "0011" then -- CALL, RETURN, conditional branch
                             case IR(11 downto 10) is 
                                 when "00" => -- conditional branch
                                     case IR(9 downto 8) is 
@@ -204,6 +221,7 @@ begin
                             MAR <= std_logic_vector(stack_ptr(7 downto 0)-1);
                             stack_ptr <= stack_ptr - 1;
                         elsif IR(15 downto 12) = "1111" then -- move 
+                            ALU_opcode <= "111";
                             if IR(11) = '1' then -- immediate value
                                 if IR(10) = '1' then 
                                     ALU_input1 <= "11111111" & IR(10 downto 3);
@@ -230,9 +248,9 @@ begin
                                         ALU_input1 <= IR;
                                 end case;
                             end if;
-                            ALU_opcode <= "111";
                          elsif IR(15 downto 12) = "1101" or IR(15 downto 12) = "1110" then -- unary operation
-                            case IR(2 downto 0) is 
+                             ALU_opcode <= IR(14 downto 12);
+                            case IR(10 downto 8) is  
                                 when "000" => -- RA
                                     ALU_input1 <= A;
                                 when "001" => -- RB
@@ -256,6 +274,7 @@ begin
                                 ALU_input2 <= ones_15;
                             end if;
                         else  -- binary operation
+                            ALU_opcode <= IR(14 downto 12);
                             case IR(11 downto 9) is 
                                 when "000" => -- RA
                                     ALU_input1 <= A;
@@ -304,8 +323,6 @@ begin
                     if IR(15 downto 12) = "0001" or IR(15 downto 12) = "0100"
                             or IR(15 downto 10) = "001101" then -- store, push, or call
                         RAM_we <= '1';
-                    else 
-                        RAM_we <= '0';
                     end if;
 
                     if IR(15 downto 12) = "0101" or IR(15 downto 12) = "0000" 
@@ -317,6 +334,7 @@ begin
                 when "0100" => -- MemWait
                     state <= "0101";
                 when "0101" => -- Write 
+                    RAM_we <= '0';
                     if IR(15 downto 12) = "0000" then  -- load 
                         case IR(10 downto 8) is 
                             when "000" => -- RA
@@ -397,13 +415,10 @@ begin
                                 D <= std_logic_vector(ALU_output);
                             when "100" => -- RE
                                 E <= std_logic_vector(ALU_output);
-                            when "101" => -- SP 
+                            when others => -- SP 
                                 stack_ptr <= ALU_output;
-                            when "110" => -- PC 
-                                PC <= std_logic_vector(ALU_output(7 downto 0));
-                            when others => -- CR 
-                                CR <= std_logic_vector(ALU_output(3 downto 0));
                         end case;
+                        CR <= ALU_cr;
                     elsif IR(15 downto 12) = "0001" or IR(15 downto 12) = "0010"
                         or IR(15 downto 10) = "001100" or IR(15 downto 12) = "0100" then 
                             -- store, unconditional branch, conditional branch, and push 
