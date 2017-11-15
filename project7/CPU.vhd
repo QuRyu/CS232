@@ -16,7 +16,9 @@ entity CPU is
         REview : out std_logic_vector(15 downto 0);
 
         iport : in  std_logic_vector(7 downto 0); -- input port
-        oport : out std_logic_vector(15 downto 0) -- output port
+        oport : out std_logic_vector(15 downto 0); -- output port
+		  oSP   : out std_logic_vector(15 downto 0);
+		  oRAM_output : out std_logic_vector(15 downto 0)
     );
 end entity;
 
@@ -26,7 +28,7 @@ architecture rlt of CPU is
     constant ones_15 : std_logic_vector(15 downto 0) := "1111111111111111";
 
     -- stack address pointer; for RAM
-    signal stack_ptr : unsigned(15 downto 0);
+    signal stack_ptr : unsigned(15 downto 0) := unsigned(zeros_15);
 
     -- Registers 
     signal CR  : std_logic_vector(3 downto 0);  -- condition register 
@@ -105,6 +107,8 @@ begin
     REview <= E;
 
     oport <= OUTREG;
+	 oSP <= std_logic_vector(stack_ptr);
+	 oRAM_output <= RAM_output;
 
     process(clk, reset) 
     begin 
@@ -125,7 +129,7 @@ begin
         elsif rising_edge(clk) then 
             case state is 
                 when "0000" => -- start state 
-                    if startup_counter = "1111" then 
+                    if startup_counter = "111" then 
                         state <= "0001";
                     else 
                         startup_counter <= startup_counter + 1;
@@ -198,9 +202,7 @@ begin
                             end case;
                         elsif IR(15 downto 12) = "0101" then -- pop 
                             MAR <= std_logic_vector(stack_ptr(7 downto 0)-1);
-                            if not(stack_ptr = 0) then 
-                                stack_ptr <= stack_ptr - 1;
-                            end if;
+                            stack_ptr <= stack_ptr - 1;
                         elsif IR(15 downto 12) = "1111" then -- move 
                             if IR(11) = '1' then -- immediate value
                                 if IR(10) = '1' then 
@@ -333,21 +335,21 @@ begin
                     elsif IR(15 downto 12) = "0101" then -- pop
                         case IR(11 downto 9) is 
                             when "000" => -- RA
-                                A <= MBR;
+                                A <= RAM_output;
                             when "001" => -- RB
-                                B <= MBR;
+                                B <= RAM_output;
                             when "010" => -- RC
-                                C <= MBR;
+                                C <= RAM_output;
                             when "011" => -- RD
-                                D <= MBR;
+                                D <= RAM_output;
                             when "100" => -- RE
-                                E <= MBR;
+                                E <= RAM_output;
                             when "101" => -- SP 
-                                stack_ptr <= unsigned(MBR);
+                                stack_ptr <= unsigned(RAM_output);
                             when "110" => -- PC 
-                                PC <= MBR(7 downto 0);
+                                PC <= RAM_output(7 downto 0);
                             when others => -- CR 
-                                CR <= MBR(3 downto 0);
+                                CR <= RAM_output(3 downto 0);
                         end case;
                     elsif IR(15 downto 12) = "0110" then -- store to output
                         case IR(11 downto 9) is 
