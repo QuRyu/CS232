@@ -36,8 +36,8 @@ int main(int argc, char **argv) {
 
     fout << "DEPTH = 256;" << endl 
          << "WIDTH = 16;" << endl 
-         << "ADDRESS_RADIX = HEX" << endl 
-         << "DATA_RADIX = BIN" << endl 
+         << "ADDRESS_RADIX = HEX;" << endl 
+         << "DATA_RADIX = BIN;" << endl 
          << "CONTENT" << endl 
          << "BEGIN" << endl;
     
