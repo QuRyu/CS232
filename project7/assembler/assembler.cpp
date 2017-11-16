@@ -8,6 +8,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <iomanip>
+#include <ios>
 
 using namespace std;
 
@@ -28,19 +30,40 @@ int main(int argc, char **argv) {
         cout << "please give one argument" << endl;
 
     ifstream fin(argv[1]);
-    ofstream fout(string(argv[1]) + "_output");
+    ofstream fout(string(argv[1]) + ".mif");
     string s, token;
+    int line = 0;
+
+    fout << "DEPTH = 256;" << endl 
+         << "WIDTH = 16;" << endl 
+         << "ADDRESS_RADIX = HEX" << endl 
+         << "DATA_RADIX = BIN" << endl 
+         << "CONTENT" << endl 
+         << "BEGIN" << endl;
     
     while (getline(fin, s)) {
         istringstream iss(s);
         stringstream oss;
+        oss << std::setw(2) << std::setfill('0') << std::hex << std::uppercase << line++;
+        oss << " : ";
         while (iss >> token) {
             if (tokens.find(token) != tokens.end()) 
                 oss << tokens[token];
             else 
                 oss << token;
         }
+        oss << ";";
         fout << oss.str() << endl;
     }
+    
+    if (line < 255) {
+        stringstream oss;
+        oss << std::setw(2) << std::hex << std::uppercase << 
+            "[" << line << "..FF] : 1111111111111111;";
+        fout << oss.str() << endl;
+    }
+
+    fout << "END" << endl;
+
 
 }
